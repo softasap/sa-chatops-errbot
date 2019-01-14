@@ -1,0 +1,3 @@
+---
+# tasks file for sa-supervisord
+  - include: tasks_supervisord.yml

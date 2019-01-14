@@ -1,0 +1,26 @@
+---
+# defaults file for sa-chatops-errbot
+
+option_install_python: true
+option_install_supervisor: false
+
+errbot_user: errbot
+errbot_install_dir: /opt/errbot
+errbot_venv_dir: "{{ errbot_install_dir }}/venv"
+
+errbot_startup: systemd # systemd | supervisor
+
+# python 3
+role_dir: "{{role_path}}"
+python_version: "3.7.2"
+
+# supervisor
+option_oldstyle_supervisord_compatibility: false
+supervisor_conf_file: /etc/supervisor/supervisord.conf
+supervisor_confd_path: /etc/supervisor/conf.d
+
+# python
+
+epel_release_version: "{{ansible_distribution_major_version}}"
+option_install_epel: true
+

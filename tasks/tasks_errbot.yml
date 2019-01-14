@@ -1,0 +1,47 @@
+---
+# useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot   
+  - name: Errbot | create user
+    user:
+      name: "{{ errbot_user }}"
+      create_home: no
+      shell: /bin/false
+      system: yes
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | Ensure directories
+    file: path="{{ item }}" state="directory"
+    with_items:
+      - "{{ errbot_install_dir }}"
+      - "{{ errbot_venv_dir }}"
+
+  - name: Errbot | create venv
+    pip:
+#    requirements: {{ errbot_install_dir }}/requirements.txt
+     virtualenv: "{{ errbot_venv_dir }}"
+     virtualenv_command: /usr/local/bin/python3 -m venv
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | Startup supervisord
+    template: src="templates/supervisor.conf.j2" dest=/etc/supervisor/conf.d/errbot.conf
+    become: yes
+    when: errbot_startup == "supervisord"
+    tags:
+      - errbot
+
+  - name: Errbot | Startup systemd
+    template: src="templates/systemd.j2" dest=/etc/systemd/system/errbot.service
+    become: yes
+    when: errbot_startup == "systemd"
+    tags:
+      - errbot
+
+  - name: Errbot | Configure systemd
+    service: name="systemd" enabled=yes restarted=yes
+    become: yes
+    when: errbot_startup == "systemd"
+    tags:
+      - errbot
