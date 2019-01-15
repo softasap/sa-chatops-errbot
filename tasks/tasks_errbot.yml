@@ -1,5 +1,5 @@
 ---
-# useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot   
+# useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot
   - name: Errbot | create user
     user:
       name: "{{ errbot_user }}"
@@ -15,7 +15,7 @@
     with_items:
       - "{{ errbot_install_dir }}"
       - "{{ errbot_venv_dir }}"
-      - "{{ errbot_extra_backend_dir }}" 
+      - "{{ errbot_extra_backend_dir }}"
     become: yes
     tags:
       - errbot
@@ -35,6 +35,9 @@
      name: errbot
      virtualenv: "{{ errbot_venv_dir }}"
      virtualenv_command: /usr/local/bin/python3 -m venv
+    retries: 3
+    register: result
+    until: result is not failed
     become: yes
     tags:
       - errbot
@@ -43,10 +46,13 @@
     pip:
       name: slackclient
       virtualenv: "{{ errbot_venv_dir }}"
+    retries: 3
+    register: result
+    until: result is not failed
     become: yes
     when: errbot_effective_backend == "Slack"
     tags:
-      - errbot      
+      - errbot
 
   - name: Errbot | Startup supervisord
     template: src="templates/startup/supervisor.conf.j2" dest=/etc/supervisor/conf.d/errbot.conf

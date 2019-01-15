@@ -5,9 +5,9 @@
     when: option_install_python
 
   - include_tasks: sa-python3/main.yml
-    when: option_install_python   
+    when: option_install_python
 
   - include_tasks: sa-supervisord/main.yml
     when: option_install_supervisor
 
-  - include_tasks: tasks_errbot.yml 
+  - include_tasks: tasks_errbot.yml
