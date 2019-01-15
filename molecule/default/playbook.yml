@@ -12,5 +12,6 @@
 
   roles:
      - {
-        role: "sa-chatops-errbot"
+        role: "sa-chatops-errbot",
+        errbot_effective_backend: "Slack",
        }
