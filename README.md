@@ -1,8 +1,7 @@
 sa-chatops-errbot
 =================
 
-[![Build Status](https://travis-ci.com/softasap/sa-chatops-errbot.svg?branch=master)]
-(https://travis-ci.com/softasap/sa-chatops-errbot)
+[![Build Status](https://travis-ci.com/softasap/sa-chatops-errbot.svg?branch=master)](https://travis-ci.com/softasap/sa-chatops-errbot)
 
 
 Example of usage:
