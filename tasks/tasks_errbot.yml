@@ -1,0 +1,85 @@
+---
+# useradd --no-create-home --no-user-group -g nogroup -s /bin/false errbot
+  - name: Errbot | create user
+    user:
+      name: "{{ errbot_user }}"
+      create_home: no
+      shell: /bin/false
+      system: yes
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | Ensure directories
+    file: path="{{ item }}" state="directory"
+    with_items:
+      - "{{ errbot_install_dir }}"
+      - "{{ errbot_venv_dir }}"
+      - "{{ errbot_extra_backend_dir }}"
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | Ensure writeable directories
+    file: path="{{ item }}" state="directory" owner="{{ errbot_user }}"
+    with_items:
+      - "{{ errbot_data_dir }}"
+      - "{{ errbot_log_dir }}"
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | create venv
+    pip:
+#    requirements: {{ errbot_install_dir }}/requirements.txt
+     name: errbot
+     virtualenv: "{{ errbot_venv_dir }}"
+     virtualenv_command: /usr/local/bin/python3 -m venv
+    retries: 3
+    register: result
+    until: result is not failed
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | slack dependencies
+    pip:
+      name: slackclient
+      virtualenv: "{{ errbot_venv_dir }}"
+    retries: 3
+    register: result
+    until: result is not failed
+    become: yes
+    when: errbot_effective_backend == "Slack"
+    tags:
+      - errbot
+
+  - name: Errbot | Startup supervisord
+    template: src="templates/startup/supervisor.conf.j2" dest=/etc/supervisor/conf.d/errbot.conf
+    become: yes
+    when: errbot_startup == "supervisord"
+    tags:
+      - errbot
+
+  - name: Errbot | Startup systemd
+    template: src="templates/startup/systemd.j2" dest=/etc/systemd/system/errbot.service
+    become: yes
+    when: errbot_startup == "systemd"
+    tags:
+      - errbot
+
+  - name: Errbot | Configurations
+    template: src="templates/errconfig/{{ item }}.j2" dest="{{ errbot_install_dir }}/{{ item }}"
+    with_items:
+      - config.py
+      - config-template.py
+    become: yes
+    tags:
+      - errbot
+
+  - name: Errbot | Configure systemd
+    service: name="errbot" enabled=yes state=restarted
+    become: yes
+    when: errbot_startup == "systemd"
+    tags:
+      - errbot

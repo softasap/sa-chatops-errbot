@@ -1,0 +1,11 @@
+[Unit]
+Description=Errbot chatbot
+After=network.service
+
+[Service]
+Environment="LC_ALL=en_US.UTF-8"
+ExecStart={{ errbot_venv_dir }}/bin/errbot --config {{ errbot_install_dir }}/config.py
+WorkingDirectory={{ errbot_install_dir }}
+User={{ errbot_user }}
+Restart=always
+KillSignal=SIGINT

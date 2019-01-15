@@ -1,0 +1,72 @@
+---
+
+  - name: SupervisorD | Check if is present
+    command: test -x /usr/local/bin/supervisord
+    ignore_errors: yes
+    register: supervisord_present
+    changed_when: False
+    tags:
+        - supervisord
+
+  - name: SupervisorD | install package
+    apt: pkg=supervisor state=present
+    retries: 3
+    register: result
+    until: result is not failed
+    when: supervisord_present is failed
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | ensure conf.d directory present
+    file: path="{{ supervisor_confd_path }}" state=directory
+    become: yes
+    tags:
+      - supervisord
+
+  - name: SupervisorD | Link to old-style config base dir
+    file: path=/etc/supervisord src=/etc/supervisor state=link force=yes
+    when: option_oldstyle_supervisord_compatibility
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | Link to old-style conf.d dir
+    file: path=/etc/supervisor/programs src=/etc/supervisor/conf.d state=link force=yes
+    when: option_oldstyle_supervisord_compatibility
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | ensure log directory present
+    file: path="/var/log/supervisor" state=directory
+    become: yes
+    tags:
+      - supervisord
+
+  - name: SupervisorD | Link to old-style log dir
+    file: path=/var/log/supervisord src=/var/log/supervisor state=link force=yes
+    when: option_oldstyle_supervisord_compatibility
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | update defaults
+    command: update-rc.d supervisor defaults
+    when: supervisord_present is failed
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | ensure service enabled
+    service: name=supervisor enabled=yes
+    become: yes
+    tags:
+        - supervisord
+
+  - name: SupervisorD | ensure service started
+    service: name=supervisor state=restarted
+    when: docker_test is not defined
+    become: yes
+    tags:
+        - supervisord
